@@ -3,6 +3,7 @@ package gg.landships.landshipsgame;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.Vector2;
 
 import java.io.Serializable;
 
@@ -74,7 +75,12 @@ public class TankChassis extends GameObject implements Serializable {
             // and shoot the shell in the direction of the turret
             if(progress == 1f) {
                 progress = 0;
-                TankShell shell = new TankShell(turret.direction, turret.getTruePos(), 2500f);
+
+                Vector2 tDirection = turret.direction;
+                Vector2 tOrigin = turret.getTruePos();
+                float bSpeed = 2500f;
+
+                TankShell shell = new TankShell(tDirection, tOrigin, bSpeed);
                 LandshipsGame.renderLayer1.add(shell);
                 LandshipsGame.updateList.add(shell);
             }
