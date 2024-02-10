@@ -9,8 +9,10 @@ public class NetworkUpdateMessage extends NetworkMessage {
         messageType = 0;
     }
 
-    Vector2 chassisPos;
-    Vector2 turretPos;
+    float chassisPosX;
+    float chassisPosY;
+    float turretPosX;
+    float turretPosY;
 
     float chassisRot;
     float turretRot;

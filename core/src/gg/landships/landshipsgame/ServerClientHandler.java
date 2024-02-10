@@ -1,38 +1,41 @@
 package gg.landships.landshipsgame;
 
+import org.json.simple.JSONObject;
+
+import java.io.DataInputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 public class ServerClientHandler implements Runnable {
     Socket socket;
-    ObjectOutputStream out;
-    ObjectInputStream in;
+    DataInputStream in;
+    PrintWriter out;
 
     ServerClientHandler(Socket sock) {
         try {
             socket = sock;
-            out = new ObjectOutputStream(socket.getOutputStream());
-            in = new ObjectInputStream(sock.getInputStream());
+            in = new DataInputStream(sock.getInputStream());
+            out = new PrintWriter(sock.getOutputStream());
+
+            out.flush();
         } catch (Exception ignored) {}
     }
 
     @Override
     public void run() {
         try {
-            NetworkMessage handshake = new NetworkMessage();
-            handshake.clientId = LandshipsServer.clients.indexOf(this);
-
-            out.writeObject(handshake);
+            JSONObject handshake = new JSONObject();
+            handshake.put("clientId", LandshipsServer.clients.indexOf(this));
+            out.println(handshake.toJSONString());
             out.flush();
 
             while(true) {
-                Object o = in.readObject();
-
-                NetworkUpdateMessage message = (NetworkUpdateMessage) o;
-                for(ServerClientHandler sch: LandshipsServer.clients) {
-                    sch.out.writeObject(message);
-                    sch.out.flush();
+                String inLine = in.readLine();
+                for(ServerClientHandler client: LandshipsServer.clients) {
+                    client.out.println(inLine);
+                    client.out.flush();
                 }
             }
         } catch (Exception ignored) {

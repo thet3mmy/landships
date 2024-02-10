@@ -2,6 +2,7 @@ package gg.landships.landshipsgame;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
@@ -37,13 +38,6 @@ public class LandshipsGame extends ApplicationAdapter {
 		shapeRenderer = new ShapeRenderer();
 		uiSystem = new UISystem();
 
-		// connect to the server
-		try {
-			NetworkSystem.socket = new Socket("127.0.0.1", 1235);
-			NetworkSystem.out = new ObjectOutputStream(NetworkSystem.socket.getOutputStream());
-			NetworkSystem.in = new ObjectInputStream(NetworkSystem.socket.getInputStream());
-		} catch (Exception ignored) {}
-
 		// create linked lists
         renderLayer0 = new LinkedList<>();
 		renderLayer1 = new LinkedList<>();
@@ -71,8 +65,8 @@ public class LandshipsGame extends ApplicationAdapter {
 		 */
 
 		// fill tanks list with puppets
-		for(int i = 0; i < 5; i++) {
-			TankChassis newTank = new TankChassis();
+		for(int i = 0; i < 10; i++) {
+			TankChassis newTank = new TankChassis(new Texture("chassistemplate.png"));
 			newTank.sprite.setPosition(-99999, -99999);
 			newTank.turret.sprite.setPosition(-99999, -99999);
 
@@ -80,8 +74,10 @@ public class LandshipsGame extends ApplicationAdapter {
 			renderLayer0.add(newTank);
 		}
 
-		networkSystem = new NetworkSystem();
-		networkSystem.start();
+		try {
+			networkSystem = new NetworkSystem();
+			networkSystem.start();
+		} catch (IOException ignored) {}
 	}
 
 	@Override
@@ -105,27 +101,14 @@ public class LandshipsGame extends ApplicationAdapter {
 				o.think();
 			}
 
+			for (TankChassis o: new LinkedList<>(tanks)) {
+				o.updateTurretPosition();
+			}
+
 			batch.end();
 			uiSystem.renderUI();
-
-			try {
-				updateServer();
-			} catch (IOException ignored) {
-			}
+			networkSystem.updateEverything();
 		}
-	}
-
-	public void updateServer() throws IOException {
-		NetworkUpdateMessage newMessage = new NetworkUpdateMessage();
-		newMessage.clientId = NetworkSystem.clientId;
-
-		newMessage.chassisPos = new Vector2(thisTank.sprite.getX(), thisTank.sprite.getY());
-		newMessage.turretPos = new Vector2(thisTank.turret.sprite.getX(), thisTank.turret.sprite.getY());
-		newMessage.chassisRot = thisTank.sprite.getRotation();
-		newMessage.turretRot = thisTank.turret.sprite.getRotation();
-
-		NetworkSystem.out.writeObject(newMessage);
-		NetworkSystem.out.flush();
 	}
 
 	@Override

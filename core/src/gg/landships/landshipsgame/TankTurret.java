@@ -9,8 +9,8 @@ import com.badlogic.gdx.math.Vector3;
 public class TankTurret extends GameObject {
     private float rotationSpeed = 1f;
 
-    TankTurret() {
-        super(new Texture("turrettemplate.png"));
+    TankTurret(Texture t) {
+        super(t);
         sprite.setOrigin(sprite.getWidth() / 2, sprite.getHeight() / 4);
     }
 

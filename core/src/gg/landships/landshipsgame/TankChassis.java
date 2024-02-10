@@ -8,7 +8,7 @@ import com.badlogic.gdx.math.Vector2;
 import java.io.Serializable;
 
 public class TankChassis extends GameObject implements Serializable {
-    public float reloadSpeed = 1f;
+    public float reloadSpeed = 0.8f;
     // 0.2 is very slow, and 4 is very fast
 
     public float turnSpeed = 1f;
@@ -17,18 +17,18 @@ public class TankChassis extends GameObject implements Serializable {
     public float driveSpeed = 5f;
     // how much the velocity increases by
 
-    public float frictionBase = 0.9f;
+    public float frictionBase = 0.92f;
     // 0 = 100% friction, instant stop, 1 = no stop
 
     public float topSpeed = 12f;
     // this is the maximum speed cap for this tank;
 
-    public float progress = 0.0f;
+    public float progress = 1.0f;
     public TankTurret turret;
 
-    TankChassis() {
-        super(new Texture("chassistemplate.png"));
-        turret = new TankTurret();
+    TankChassis(Texture t) {
+        super(t);
+        turret = new TankTurret(new Texture("turrettemplate.png"));
         turret.think();
 
         LandshipsGame.renderLayer1.add(turret);
@@ -47,6 +47,9 @@ public class TankChassis extends GameObject implements Serializable {
             velocity.y = topSpeed;
 
         sprite.translate(velocity.x, velocity.y);
+    }
+
+    public void updateTurretPosition() {
         turret.sprite.setPosition(sprite.getX(), sprite.getY() + turret.sprite.getHeight() / 4);
     }
 
@@ -70,19 +73,23 @@ public class TankChassis extends GameObject implements Serializable {
             velocity.y *= frictionBase;
         }
 
-        if(Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+        if(Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
             // if we are reloaded reset the reload progress
             // and shoot the shell in the direction of the turret
             if(progress == 1f) {
                 progress = 0;
 
-                Vector2 tDirection = turret.direction;
+                Vector2 tDirection = turret.direction.nor();
                 Vector2 tOrigin = turret.getTruePos();
                 float bSpeed = 2500f;
 
+                /*
                 TankShell shell = new TankShell(tDirection, tOrigin, bSpeed);
                 LandshipsGame.renderLayer1.add(shell);
                 LandshipsGame.updateList.add(shell);
+                 */
+
+                LandshipsGame.networkSystem.shootBullet(tDirection, tOrigin, bSpeed);
             }
         }
     }
