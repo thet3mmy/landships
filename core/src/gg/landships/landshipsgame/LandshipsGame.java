@@ -14,43 +14,43 @@ import java.net.Socket;
 import java.util.LinkedList;
 
 public class LandshipsGame extends ApplicationAdapter {
-	static SpriteBatch uiBatch;
-	static SpriteBatch batch;
-	static ShapeRenderer shapeRenderer;
-	static UISystem uiSystem;
+	static SpriteBatch uiBatch;					// renders all text for the UI
+	static SpriteBatch batch;					// renders all sprites
+	static ShapeRenderer shapeRenderer;			// renders the cross-hair reload effect
+	static UISystem uiSystem;					// renders text and cross-hairs
 
-	static Socket socket;
-	static ObjectOutputStream out;
-	static ObjectInputStream in;
-	static Thread networkThread;
-	static int clientId;
+	static NetworkSystem networkSystem;
 
-	static LinkedList<GameObject> renderLayer0;
-	static LinkedList<GameObject> renderLayer1;
-	static LinkedList<GameObject> updateList;
-	static LinkedList<TankChassis> tanks;
-	static LandshipsCamera camera;
+	static LinkedList<GameObject> renderLayer0;	// bottom layer objects
+	static LinkedList<GameObject> renderLayer1; // top layer objects (on top of layer0)
+	static LinkedList<GameObject> updateList;	// every object that gets updated
+	static LinkedList<TankChassis> tanks;		// tanks that are controlled by NetworkUpdateMessages
+	static LandshipsCamera camera;				// camera
 
-	static TankChassis thisTank;
+	static TankChassis thisTank;				// the tank controlled by this client
 	
 	@Override
 	public void create () {
+		// create the sprite batches, etc.
 		batch = new SpriteBatch();
 		uiBatch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
 		uiSystem = new UISystem();
 
+		// connect to the server
 		try {
-			socket = new Socket("127.0.0.1", 1235);
-			out = new ObjectOutputStream(socket.getOutputStream());
-			in = new ObjectInputStream(socket.getInputStream());
+			NetworkSystem.socket = new Socket("127.0.0.1", 1235);
+			NetworkSystem.out = new ObjectOutputStream(NetworkSystem.socket.getOutputStream());
+			NetworkSystem.in = new ObjectInputStream(NetworkSystem.socket.getInputStream());
 		} catch (Exception ignored) {}
 
+		// create linked lists
         renderLayer0 = new LinkedList<>();
 		renderLayer1 = new LinkedList<>();
 		updateList = new LinkedList<>();
 		tanks = new LinkedList<>();
 
+		// set up the camera
 		camera = new LandshipsCamera();
 		camera.setToOrtho(false);
 
@@ -70,6 +70,7 @@ public class LandshipsGame extends ApplicationAdapter {
 		list, so the turret is just drawing on its own.
 		 */
 
+		// fill tanks list with puppets
 		for(int i = 0; i < 5; i++) {
 			TankChassis newTank = new TankChassis();
 			newTank.sprite.setPosition(-99999, -99999);
@@ -79,36 +80,8 @@ public class LandshipsGame extends ApplicationAdapter {
 			renderLayer0.add(newTank);
 		}
 
-		networkThread = new Thread(() -> {
-            try {
-				NetworkMessage handshake = (NetworkMessage) in.readObject();
-				clientId = handshake.clientId;
-
-				System.out.println(this + " Got client ID " + clientId);
-
-				thisTank = tanks.get(clientId);
-				updateList.add(thisTank);
-				updateList.add(thisTank.turret);
-				thisTank.sprite.setPosition(0,0);
-
-				while(true) {
-					if(Thread.currentThread().isInterrupted()) {
-						socket.close();
-						in.close();
-						out.close();
-						return;
-					}
-
-					NetworkUpdateMessage update = (NetworkUpdateMessage) in.readObject();
-
-                    tanks.get(update.clientId).sprite.setPosition(update.chassisPos.x, update.chassisPos.y);
-					tanks.get(update.clientId).turret.sprite.setPosition(update.turretPos.x, update.turretPos.y);
-					tanks.get(update.clientId).sprite.setRotation(update.chassisRot);
-					tanks.get(update.clientId).turret.sprite.setRotation(update.turretRot);
-				}
-			} catch (Exception ignored) {}
-        });
-		networkThread.start();
+		networkSystem = new NetworkSystem();
+		networkSystem.start();
 	}
 
 	@Override
@@ -144,20 +117,20 @@ public class LandshipsGame extends ApplicationAdapter {
 
 	public void updateServer() throws IOException {
 		NetworkUpdateMessage newMessage = new NetworkUpdateMessage();
-		newMessage.clientId = clientId;
+		newMessage.clientId = NetworkSystem.clientId;
 
 		newMessage.chassisPos = new Vector2(thisTank.sprite.getX(), thisTank.sprite.getY());
 		newMessage.turretPos = new Vector2(thisTank.turret.sprite.getX(), thisTank.turret.sprite.getY());
 		newMessage.chassisRot = thisTank.sprite.getRotation();
 		newMessage.turretRot = thisTank.turret.sprite.getRotation();
 
-		out.writeObject(newMessage);
-		out.flush();
+		NetworkSystem.out.writeObject(newMessage);
+		NetworkSystem.out.flush();
 	}
 
 	@Override
 	public void dispose () {
-		networkThread.interrupt();
+		NetworkSystem.networkThread.interrupt();
 
 		batch.dispose();
 		uiBatch.dispose();
@@ -171,9 +144,9 @@ public class LandshipsGame extends ApplicationAdapter {
 				o.sprite.getTexture().dispose();
 			}
 
-			socket.close();
-			in.close();
-			out.close();
+			NetworkSystem.socket.close();
+			NetworkSystem.in.close();
+			NetworkSystem.out.close();
 		} catch (Exception ignored) {}
 	}
 }

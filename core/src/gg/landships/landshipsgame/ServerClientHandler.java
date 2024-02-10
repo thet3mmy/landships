@@ -27,7 +27,9 @@ public class ServerClientHandler implements Runnable {
             out.flush();
 
             while(true) {
-                NetworkUpdateMessage message = (NetworkUpdateMessage) in.readObject();
+                Object o = in.readObject();
+
+                NetworkUpdateMessage message = (NetworkUpdateMessage) o;
                 for(ServerClientHandler sch: LandshipsServer.clients) {
                     sch.out.writeObject(message);
                     sch.out.flush();

@@ -17,6 +17,8 @@ public class LandshipsServer {
         serverSocket = new ServerSocket(1235);
         clients = new LinkedList<>();
 
+        System.out.println("Server opened");
+
         while(true) {
             Socket socket = serverSocket.accept();
             ServerClientHandler handler = new ServerClientHandler(socket);

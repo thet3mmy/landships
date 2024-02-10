@@ -4,7 +4,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 
-public class TankShell extends GameObject {
+import java.io.Serializable;
+
+public class TankShell extends GameObject implements Serializable {
     Vector2 direction;
     Vector2 originPos;
     float bulletSpeed;
