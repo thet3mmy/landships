@@ -12,8 +12,10 @@ public class LandshipsServer {
     public static ServerSocket serverSocket;
     public static LinkedList<ServerClientHandler> clients;
 
+    public static final int nThreads = 20;
+
     public static void main(String[] args) throws IOException {
-        threadPool = Executors.newFixedThreadPool(15);
+        threadPool = Executors.newFixedThreadPool(nThreads);
         serverSocket = new ServerSocket(1235);
         clients = new LinkedList<>();
 
@@ -25,6 +27,8 @@ public class LandshipsServer {
             clients.add(handler);
 
             threadPool.execute(handler);
+
+            System.out.println("Added new client " + handler + " est. remaining threads: " + (nThreads - clients.size()));
         }
     }
 }

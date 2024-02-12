@@ -54,6 +54,17 @@ public class NetworkSystem {
         send(update.toJSONString());
     }
 
+    public void hitMessage(float damage, int shooter, int shellIndex) {
+        JSONObject update = new JSONObject();
+        update.put("clientId", clientId);
+        update.put("type", 2);
+        update.put("damage", damage);
+        update.put("shooter", shooter);
+        update.put("shellIndex", shellIndex);
+
+        send(update.toJSONString());
+    }
+
     public void start() {
         // create network thread
         NetworkSystem.networkThread = new Thread(() -> {
@@ -61,6 +72,8 @@ public class NetworkSystem {
                 JSONParser parser = new JSONParser();
                 JSONObject handshakeObject = (JSONObject) parser.parse(in.readLine());
                 clientId = ((Long) handshakeObject.get("clientId")).intValue();
+
+                Gdx.graphics.setTitle("Landships 0.3.0 (ClientID " + clientId + ")");
 
                 LandshipsGame.thisTank = LandshipsGame.tanks.get(clientId);
                 LandshipsGame.thisTank.sprite.setPosition(0,0);
@@ -100,12 +113,27 @@ public class NetworkSystem {
                                 TankShell newShell = new TankShell(
                                         new Vector2(originX, originY),
                                         new Vector2(dirX, dirY),
-                                        speed
+                                        speed,
+                                        netTank
                                 );
 
                                 LandshipsGame.renderLayer0.add(newShell);
                                 LandshipsGame.updateList.add(newShell);
+                                netTank.myShells.add(newShell);
                             });
+                            break;
+                        case 2:
+                            float damage = ((Double) newMessage.get("damage")).floatValue();
+                            int shellIndex = ((Long) newMessage.get("shellIndex")).intValue();
+                            TankChassis shooter = LandshipsGame.tanks.get(((Long) newMessage.get("shooter")).intValue());
+                            netTank.hp -= damage;
+
+                            try {
+                                if(shellIndex < shooter.myShells.size()) {
+                                    TankShell shell = shooter.myShells.get(shellIndex);
+                                    shell.delete();
+                                }
+                            } catch (Exception e) { e.printStackTrace(); }
                             break;
                     }
                 }

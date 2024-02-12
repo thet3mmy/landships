@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 public class TankTurret extends GameObject {
-    private float rotationSpeed = 1f;
+    private float rotationSpeed = 3.5f;
 
     TankTurret(Texture t) {
         super(t);

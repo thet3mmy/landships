@@ -3,6 +3,7 @@ package gg.landships.landshipsgame;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
 
 public class UISystem {
     private ShapeRenderer shapeRenderer;
@@ -32,6 +33,18 @@ public class UISystem {
         float innerRadius = radius * LandshipsGame.thisTank.progress;
         shapeRenderer.circle(centerX, centerY, innerRadius, 50);
         shapeRenderer.end();
+
+        ShapeRenderer shapeRenderer2 = new ShapeRenderer();
+        shapeRenderer2.setProjectionMatrix(LandshipsGame.camera.combined);
+
+        shapeRenderer2.begin(ShapeRenderer.ShapeType.Line);
+
+        shapeRenderer2.setColor(1.0f, 1.0f, 0.0f, 1f);
+        shapeRenderer2.polygon(LandshipsGame.thisTank.getRearHitPolygon().getTransformedVertices());
+        shapeRenderer2.setColor(0.0f, 1.0f, 1.0f, 1f);
+        shapeRenderer2.polygon(LandshipsGame.thisTank.getFrontHitPolygon().getTransformedVertices());
+
+        shapeRenderer2.end();
 
         LandshipsGame.uiBatch.begin();
         font.draw(LandshipsGame.uiBatch, "fps: " + Gdx.graphics.getFramesPerSecond(), 0, Gdx.graphics.getHeight());

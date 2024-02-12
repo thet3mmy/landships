@@ -9,7 +9,7 @@ public class DesktopLauncher {
 	public static void main (String[] arg) {
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
 		config.setForegroundFPS(60);
-		config.setTitle("Landships 0.3.0");
+		config.setTitle("Landships (Connecting)");
 		new Lwjgl3Application(new LandshipsGame(), config);
 	}
 }
