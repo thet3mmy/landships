@@ -8,7 +8,7 @@ import java.net.Socket;
 //
 // NetServerHandler
 //
-// This is run for every connected client to the NetServer
+// This is run for every connected client to the NetServer, and it does all the heavy lifting
 // It runs in a thread, remember that...
 //
 
@@ -32,6 +32,7 @@ public class NetServerHandler implements Runnable {
             while(running) {
                 // Read the line coming in from the user
                 String line = in.readLine();
+                System.out.println(line);
 
                 // Resend this to everyone
                 for(NetServerHandler h: NetServer.clients) {

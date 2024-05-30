@@ -30,11 +30,13 @@ public class LandshipsCamera extends OrthographicCamera {
 
     @Override
     public void update() {
+        float sensMul = 1f;
+
         if(!getIsFocused()) {
             // Camera is not set to follow anything, so let's let the user
             // drag the camera around.
             if(Gdx.input.isButtonPressed(1)) {
-                float sens = 1.8f * zoom;
+                float sens = sensMul * zoom;
                 translate(-(Gdx.input.getDeltaX() * sens), Gdx.input.getDeltaY() * sens);
             }
         } else {

@@ -1,5 +1,6 @@
 package gg.landships;
 
+import java.io.IOException;
 import java.util.LinkedList;
 
 import com.badlogic.gdx.ApplicationAdapter;
@@ -10,7 +11,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 //
 // Game
 //
-// This class contains the controlling logic that combines all of the different classes together
+// This class contains the controlling logic that combines all the different classes together
 // I try to minimize this java file as much as I can to keep it simple
 //
 
@@ -38,35 +39,41 @@ public class Game extends ApplicationAdapter {
 		// here we will test everything
 		tank = new TankBase();
 		renderer.addEntity(tank);
-		renderer.addEntity(new NetTankBase());
 
 		// set the camera to focus on the tank if we are in focused mode
 		camera.setFocus(tank);
 
-		netTanks = new LinkedList<>();
-		for(int i = 0; i < 8; i++) {
-			netTanks.add(new NetTankBase());
+		// Finally, start the networking engine on the clientside
+		try {
+			controller = new NetController();
+			netThread = new Thread(controller);
+			netThread.start();
+		} catch (IOException e) {
+			System.err.println("Failed to start networking engine");
 		}
 
-		// Finally, start the networking engine on the clientside
-		netThread = new Thread(controller);
-		netThread.start();
+		// Get a reference here, it could be easier (some old code might still use this)
+		netTanks = NetController.netTanks;
 	}
 
 	@Override
 	public void render () {
-		ScreenUtils.clear(0, 0, 0, 1);				// clear our screen, black bg...
+		ScreenUtils.clear(0, 0, 0, 1);			// clear our screen, black bg...
 		renderer.update();									// updates our camera for us!!!
 
 		renderer.begin();									// start rendering things normally
-		renderer.render();									// draw all of the entities
+		renderer.render();									// draw all the entities
 		renderer.end();										// stop rendering now
 
 		renderer.updateEnts();								// update AFTER so that TankTurrets work
+
+		// Network section... I hate net code
+		// Let's send the update to the server now
+		controller.sendUpdateToServer();
 	}
 	
 	@Override
 	public void dispose () {
-		
+		netThread.stop();
 	}
 }

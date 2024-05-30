@@ -30,7 +30,7 @@ public class LandshipsInputController implements InputProcessor {
     public boolean scrolled(float amountX, float amountY) {
         LandshipsCamera cam = Game.renderer.getCamera();
 
-        cam.zoom += amountY * 2f;
+        cam.zoom += amountY;
         if(cam.zoom > cam.maxZoom) {
             cam.zoom = cam.maxZoom;
         }
